@@ -9,6 +9,7 @@
     "demo": "node src/demo.ts",
     "lint": "tsc -p tsconfig.build.json --noEmit",
     "typecheck": "tsc -p tsconfig.test.json",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "chat": "node src/cli/chat.ts"
   }
 }

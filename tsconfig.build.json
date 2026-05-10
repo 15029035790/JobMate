@@ -13,5 +13,9 @@
     "rewriteRelativeImportExtensions": true,
     "ignoreDeprecations": "6.0"
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "tests/**/*.d.ts"
+  ]
 }
