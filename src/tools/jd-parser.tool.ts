@@ -27,7 +27,7 @@ export class JdParserTool {
 
 function inferTitle(lines: string[], rawText: string): string {
   const titleLine = lines.find((line) => /engineer|manager|developer|designer|product|pm|工程师|经理|产品/i.test(line))
-  return titleLine?.slice(0, 80) ?? rawText.slice(0, 60) || "Untitled Job"
+  return titleLine?.slice(0, 80) ?? (rawText.slice(0, 60) || "Untitled Job")
 }
 
 function extractKeywords(text: string): string[] {

@@ -1,23 +1,37 @@
 import type { ResumeContent } from "../domain/types.ts"
 
+export interface ResumeFieldDiff {
+  section: "summary" | "skills" | "projects"
+  changeType: "added" | "removed" | "modified"
+  detail: string
+}
+
 export class VersionDiffTool {
   summarize(before: ResumeContent, after: ResumeContent): string[] {
-    const changes: string[] = []
+    const changes = this.detailedDiff(before, after)
+    if (!changes.length) return ["Created a JD-specific copy while preserving the source resume."]
+    return changes.map((c) => `${c.section}: ${c.detail}`)
+  }
+
+  detailedDiff(before: ResumeContent, after: ResumeContent): ResumeFieldDiff[] {
+    const changes: ResumeFieldDiff[] = []
     if ((before.summary ?? "") !== (after.summary ?? "")) {
-      changes.push("Updated resume summary for target role alignment.")
+      changes.push({ section: "summary", changeType: "modified", detail: "Updated resume summary for target role alignment." })
     }
 
     const beforeSkills = new Set(before.skills.flatMap((group) => group.items))
     const afterSkills = new Set(after.skills.flatMap((group) => group.items))
-    const addedSkills = [...afterSkills].filter((skill) => !beforeSkills.has(skill))
-    if (addedSkills.length) {
-      changes.push(`Added or emphasized skills: ${addedSkills.slice(0, 6).join(", ")}.`)
+    for (const skill of afterSkills) if (!beforeSkills.has(skill)) changes.push({ section: "skills", changeType: "added", detail: `Added skill keyword: ${skill}.` })
+    for (const skill of beforeSkills) if (!afterSkills.has(skill)) changes.push({ section: "skills", changeType: "removed", detail: `Removed skill keyword: ${skill}.` })
+
+    const beforeProjectBullets = before.projects.flatMap((p) => p.bullets)
+    const afterProjectBullets = after.projects.flatMap((p) => p.bullets)
+    const addedBullets = afterProjectBullets.filter((b) => !beforeProjectBullets.includes(b))
+    const removedBullets = beforeProjectBullets.filter((b) => !afterProjectBullets.includes(b))
+    if (addedBullets.length || removedBullets.length) {
+      changes.push({ section: "projects", changeType: "modified", detail: `Project bullets changed (+${addedBullets.length}/-${removedBullets.length}).` })
     }
 
-    if (JSON.stringify(before.projects) !== JSON.stringify(after.projects)) {
-      changes.push("Reframed project bullets with stronger JD-facing evidence.")
-    }
-
-    return changes.length ? changes : ["Created a JD-specific copy while preserving the source resume."]
+    return changes
   }
 }

@@ -14,7 +14,9 @@ interface MatchPayload {
 export class ResumeJdMatchingAgent implements AgentHandler<MatchPayload, ResumeJdMatchReport> {
   readonly agentName = "resume_jd_matching" as const
 
-  constructor(private readonly db: InMemoryDatabase) {}
+  private readonly db: InMemoryDatabase
+
+  constructor(db: InMemoryDatabase) { this.db = db }
 
   async run(task: AgentTaskInput<MatchPayload>): Promise<AgentTaskOutput<ResumeJdMatchReport>> {
     const startedAt = nowIso()
