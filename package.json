@@ -1,0 +1,11 @@
+{
+  "name": "jobmate-ai-core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lightweight multi-agent core for JobMate AI career interview assistant.",
+  "scripts": {
+    "test": "node --test tests/*.test.ts",
+    "demo": "node src/demo.ts"
+  }
+}
