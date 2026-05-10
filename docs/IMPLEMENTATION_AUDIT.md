@@ -73,5 +73,7 @@
   - `CentralOrchestrator` 注册并可调度 mock interview / review negotiation / weakness diagnosis / learning planner。
   - 新增三个垂直 Agent 的最小闭环：review 协商、weakness 诊断、learning plan 创建。
   - 强化 long-term memory gate：禁止把带 `unverifiableClaims` 的项目评估直接写入 LTM；禁止未确认 weakness 写入 LTM。
+  - 补齐 resume version save/archive 的最小任务语义（optimize/save/archive）。
+  - Orchestrator 增加确认门控：未确认的 long-term write request 会被提升为 `needs_user_input`。
 - P1 暂未实装：向量检索增强、字段级 diff、repository 分层。
 - P2 暂未实装：GUI/部署/可视化。 
