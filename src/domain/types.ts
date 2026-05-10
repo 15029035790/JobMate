@@ -256,6 +256,96 @@ export interface LearningTask {
   updatedAt: string
 }
 
+
+export type FollowUpStrategy =
+  | "clarify_context"
+  | "probe_ownership"
+  | "probe_architecture"
+  | "probe_tradeoffs"
+  | "probe_metrics"
+  | "probe_failure_cases"
+  | "move_to_next_topic"
+
+export interface ProjectDeepDiveInput {
+  userId: string
+  resumeVersionId: string
+  jdId?: string
+  selectedProject: {
+    projectName: string
+    projectDescription: string
+    bullets: string[]
+  }
+  targetRole?: string
+  interviewRound: "screening" | "technical" | "hiring_manager" | "behavioral"
+}
+
+export interface ProjectClaim {
+  id?: string
+  interviewTurnId?: string
+  claimType:
+    | "business_context"
+    | "technical_design"
+    | "personal_contribution"
+    | "metric_result"
+    | "tradeoff"
+    | "failure_or_limitation"
+  content: string
+  verifiability:
+    | "verifiable_from_resume"
+    | "supported_by_answer"
+    | "internally_consistent"
+    | "unverifiable_internal_claim"
+  confidence: "low" | "medium" | "high"
+}
+
+export interface ProjectAnswerEvaluation {
+  contextClarityScore: number
+  problemFramingScore: number
+  ownershipBoundaryScore: number
+  technicalDepthScore: number
+  tradeoffReasoningScore: number
+  evidenceQualityScore: number
+  limitationAwarenessScore: number
+  communicationScore: number
+  consistencyScore: number
+  interviewerComprehensionScore: number
+  roleAlignmentScore: number
+  overallSignal: "strong" | "mixed" | "weak" | "risk" | "unknown"
+  unverifiableClaims: string[]
+  suggestedFollowUps: string[]
+  improvementAdvice: string[]
+  strongSignals: string[]
+  weakSignals: string[]
+  riskSignals: string[]
+  requiresUserConfirmationBeforeLongTermMemory: boolean
+  canWriteToEpisodicMemory: boolean
+}
+
+export interface ProjectDeepDiveOutput {
+  currentQuestion: string
+  evaluationRubric: {
+    targetSignals: string[]
+    redFlags: string[]
+    expectedDepth: "surface" | "medium" | "deep"
+  }
+  answerEvaluation?: ProjectAnswerEvaluation
+  nextFollowUpStrategy: FollowUpStrategy
+}
+
+export interface ConfirmedProjectNarrative {
+  projectId: string
+  userId: string
+  userConfirmedNarrative: string
+  confirmedContributionBoundary: string[]
+  confirmedMetrics: Array<{
+    metric: string
+    value: string
+    evidenceLevel: "user_claimed" | "resume_supported" | "interview_consistent"
+  }>
+  interviewReadySummary: string
+  caveats: string[]
+}
+
 export type EpisodicEventType =
   | "resume_uploaded"
   | "jd_uploaded"
