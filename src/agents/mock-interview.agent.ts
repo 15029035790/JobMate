@@ -12,7 +12,8 @@ type Payload =
 
 export class MockInterviewAgent implements AgentHandler<Payload, Record<string, unknown>> {
   readonly agentName = "mock_interview" as const
-  constructor(private readonly db: InMemoryDatabase) {}
+  private readonly db: InMemoryDatabase
+  constructor(db: InMemoryDatabase) { this.db = db }
 
   async run(task: AgentTaskInput<Payload>): Promise<AgentTaskOutput<Record<string, unknown>>> {
     const startedAt = nowIso()

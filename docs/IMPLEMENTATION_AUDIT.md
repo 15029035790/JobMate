@@ -65,3 +65,13 @@
 2. 再补 review/weakness/learning agents 的最小闭环。
 3. 接着完善 long-term confirmation gate 在 orchestrator 的统一拦截。
 4. 最后再做向量检索和 richer diff。
+
+
+## 5) 本轮按优先级推进结果（P0 -> P1 -> P2）
+- P0 已推进：
+  - 新增 `IntentPlanner` 轻量意图识别和任务规划接口。
+  - `CentralOrchestrator` 注册并可调度 mock interview / review negotiation / weakness diagnosis / learning planner。
+  - 新增三个垂直 Agent 的最小闭环：review 协商、weakness 诊断、learning plan 创建。
+  - 强化 long-term memory gate：禁止把带 `unverifiableClaims` 的项目评估直接写入 LTM；禁止未确认 weakness 写入 LTM。
+- P1 暂未实装：向量检索增强、字段级 diff、repository 分层。
+- P2 暂未实装：GUI/部署/可视化。 
