@@ -5,6 +5,7 @@ import { DocumentExportTool } from "../tools/document-export.tool.ts"
 import { VersionDiffTool } from "../tools/version-diff.tool.ts"
 import { createId, nowIso } from "../utils/id.ts"
 import { actionsOf, recommendation } from "./action-recommendations.ts"
+import { ResumeVersionRepository } from "../repositories/resume-version.repository.ts"
 
 type Payload =
   | { mode: "optimize"; sourceResumeId: string; sourceType: "base_resume" | "optimized_version"; jdId: string; optimizationInstruction?: string; targetRole?: string; tone?: "concise" | "impact-driven" | "ats-friendly" }
@@ -27,7 +28,8 @@ export class ResumeVersionOptimizationAgent implements AgentHandler<Payload, Opt
   private readonly diffTool = new VersionDiffTool()
   private readonly exportTool = new DocumentExportTool()
   private readonly db: InMemoryDatabase
-  constructor(db: InMemoryDatabase) { this.db = db }
+  private readonly repo: ResumeVersionRepository
+  constructor(db: InMemoryDatabase) { this.db = db; this.repo = new ResumeVersionRepository(db) }
 
   async run(task: AgentTaskInput<Payload>): Promise<AgentTaskOutput<OptimizeResult>> {
     const startedAt = nowIso()
@@ -47,7 +49,7 @@ export class ResumeVersionOptimizationAgent implements AgentHandler<Payload, Opt
     const optimized = optimizeCopy(source.content, jd.parsedContent.keywords, payload.tone)
     const changeSummary = this.diffTool.summarize(source.content, optimized)
     const version: ResumeVersion = { id: createId("resume_version"), userId: task.userId, baseResumeId: source.baseResumeId, parentVersionId: source.parentVersionId, title: `${jd.title} optimized draft`, content: optimized, rawText: this.exportTool.toPlainText(optimized), status: "draft", optimizationTargetJdIds: [jd.id], tags: ["draft", payload.tone ?? "ats-friendly"], changeSummary, jdAlignmentNotes: jd.parsedContent.keywords.slice(0, 6).map((keyword) => `Aligned wording around ${keyword}.`), riskWarnings: ["Review all strengthened claims before saving to keep the resume truthful."], createdByTaskId: task.taskId, createdAt: nowIso(), updatedAt: nowIso() }
-    this.db.resumeVersions.set(version.id, version)
+    this.repo.save(version)
 
     const recommendations = [recommendation("save_resume_version", "Save this resume version", "Drafts enter long-term assets only after confirmation.", ["currentResumeVersionId"]), recommendation("compare_resume_versions", "Compare versions", "Inspect changes before saving.")]
     const memoryWriteRequests: MemoryWriteRequest[] = [{ memoryType: "long_term", entityType: "resume_version", entityId: version.id, payload: { status: "saved_candidate" }, requiresUserConfirmation: true, confirmationId: `confirm_resume_version_${version.id}` }]
@@ -56,14 +58,14 @@ export class ResumeVersionOptimizationAgent implements AgentHandler<Payload, Opt
   }
 
   private save(task: AgentTaskInput<{ mode: "save"; resumeVersionId: string }>, startedAt: string): AgentTaskOutput<OptimizeResult> {
-    const v = this.db.resumeVersions.get(task.payload.resumeVersionId)
+    const v = this.repo.get(task.payload.resumeVersionId)
     if (!v || v.userId !== task.userId) return failed(task, startedAt, "RESUME_VERSION_NOT_FOUND", "Resume version not found")
     v.status = "saved"; v.updatedAt = nowIso()
     return { taskId: task.taskId, agentName: this.agentName, status: "success", result: { status: v.status, nextActions: ["start_mock_interview"] }, statePatch: { currentResumeVersionId: v.id }, memoryWriteRequests: [{ memoryType: "long_term", entityType: "resume_version", entityId: v.id, payload: { status: "saved" }, requiresUserConfirmation: false }], trace: { startedAt, endedAt: nowIso(), toolCalls: [], reasoningSummary: "Saved resume version after explicit user action." } }
   }
 
   private archive(task: AgentTaskInput<{ mode: "archive"; resumeVersionId: string }>, startedAt: string): AgentTaskOutput<OptimizeResult> {
-    const v = this.db.resumeVersions.get(task.payload.resumeVersionId)
+    const v = this.repo.get(task.payload.resumeVersionId)
     if (!v || v.userId !== task.userId) return failed(task, startedAt, "RESUME_VERSION_NOT_FOUND", "Resume version not found")
     v.status = "archived"; v.updatedAt = nowIso()
     return { taskId: task.taskId, agentName: this.agentName, status: "success", result: { status: v.status, nextActions: ["view_history"] }, trace: { startedAt, endedAt: nowIso(), toolCalls: [], reasoningSummary: "Archived resume version." } }

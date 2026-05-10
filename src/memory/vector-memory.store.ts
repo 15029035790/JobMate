@@ -1,6 +1,11 @@
 import type { EmbeddingRecord } from "../domain/types.ts"
 import { createId, nowIso } from "../utils/id.ts"
 
+export interface VectorSearchResult {
+  record: EmbeddingRecord
+  score: number
+}
+
 export class VectorMemoryStore {
   private readonly records: EmbeddingRecord[] = []
 
@@ -16,13 +21,17 @@ export class VectorMemoryStore {
   }
 
   search(userId: string, text: string, topK = 5): EmbeddingRecord[] {
+    return this.searchWithScores(userId, text, topK).map((x) => x.record)
+  }
+
+  searchWithScores(userId: string, text: string, topK = 5, minScore = 0): VectorSearchResult[] {
     const query = simpleTextVector(text)
     return this.records
       .filter((record) => record.userId === userId)
       .map((record) => ({ record, score: cosine(query, record.vector) }))
+      .filter((x) => x.score >= minScore)
       .sort((a, b) => b.score - a.score)
       .slice(0, topK)
-      .map(({ record }) => record)
   }
 }
 

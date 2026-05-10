@@ -202,6 +202,13 @@ export interface InterviewReviewDraft {
   initialFindings: string[]
   suspectedWeaknesses: string[]
   userCorrections: string[]
+  negotiationRounds?: Array<{
+    round: number
+    correctionCategory: "facts" | "ownership" | "metrics" | "communication"
+    correction: string
+    createdAt: string
+  }>
+  pendingTopics?: string[]
   finalAgreedFindings?: string[]
   finalAgreedWeaknesses?: string[]
   createdAt: string

@@ -31,3 +31,12 @@ node src/demo.ts
 
 - `docs/IMPLEMENTATION_AUDIT.md`
 - `docs/MOCK_INTERVIEW_PROJECT_DEEP_DIVE.md`
+
+
+## Compile & Check
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```

@@ -77,3 +77,17 @@
   - Orchestrator 增加确认门控：未确认的 long-term write request 会被提升为 `needs_user_input`。
 - P1 暂未实装：向量检索增强、字段级 diff、repository 分层。
 - P2 暂未实装：GUI/部署/可视化。 
+
+
+## 6) P1 推进（本轮）
+- 向量检索：增强 `VectorMemoryStore`，新增 `searchWithScores` 与 `minScore` 过滤，提升检索可控性。
+- 版本 diff：增强 `VersionDiffTool`，新增 `detailedDiff` 字段级差异输出，支持 summary/skills/projects 三段差异描述。
+- repository 分层：新增 `ReviewDraftRepository`、`ResumeVersionRepository`、`LearningPlanRepository`、`WeaknessProfileRepository`，将关键实体访问从 agent 内部 map 操作抽离。
+- review 协商体验：`InterviewReviewNegotiationAgent` 支持 correctionCategory、协商轮次标记（round-based corrections）、pendingTopics 与 suggest_next 策略建议。
+- 其余 P1（更完整 repository 分层与协商策略）仍为后续迭代。
+
+
+## 7) P2 接口预留与E2E测试（本轮）
+- 新增 P2 接口骨架：`ObservabilityPort` / `DeploymentPort` / `ReportingPort`（in-memory 或 placeholder 实现），用于后续部署、可观测性、报表扩展。
+- `CentralOrchestrator` 接入轻量 observability 事件记录（dispatch/completed/failed）。
+- 新增 `tests/e2e-agent-flow.test.ts`，覆盖从 optimize -> interview -> review -> weakness -> learning 的跨 agent 场景链路。
