@@ -23,7 +23,7 @@ node --test tests/*.test.ts
 ## Run Demo
 
 ```bash
-node src/demo.ts
+npm run demo
 ```
 
 
@@ -51,7 +51,7 @@ npm run build
 2) Run:
 
 ```bash
-node src/cli/run-real-test.ts --resume ./resume.txt --jd ./jd.txt
+npm run real-test -- --resume ./resume.txt --jd ./jd.txt
 ```
 
 This will run an end-to-end kernel flow:
@@ -75,7 +75,7 @@ export LLM_BASE_URL=https://api.deepseek.com
 Run:
 
 ```bash
-npm run chat
+npm run chat  # Node 20+ safe: run compiled dist/cli/chat.js
 ```
 
 Commands:
