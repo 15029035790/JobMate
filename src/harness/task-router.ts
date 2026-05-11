@@ -3,6 +3,8 @@ import type { AgentName } from "../domain/types.ts"
 const taskTypeToAgent = new Map<string, AgentName>([
   ["match_resume_jd", "resume_jd_matching"],
   ["optimize_resume_version", "resume_version_optimization"],
+  ["save_resume_version", "resume_version_optimization"],
+  ["archive_resume_version", "resume_version_optimization"],
   ["start_mock_interview", "mock_interview"],
   ["answer_interview_question", "mock_interview"],
   ["pause_mock_interview", "mock_interview"],
