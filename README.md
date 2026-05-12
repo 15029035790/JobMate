@@ -58,6 +58,8 @@ export DEEPSEEK_MODEL=deepseek-v4-flash
 export DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
 
+You can also put those values in a local `.env` file at the project root. `.env` is gitignored.
+
 `deepseek-v4-flash` is the default for lower latency and cost. Switch `DEEPSEEK_MODEL` to `deepseek-v4-pro` when you want stronger reasoning. `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL` are also supported aliases.
 
 1) Prepare two text files:
@@ -89,6 +91,8 @@ export DEEPSEEK_API_KEY=your_key
 export DEEPSEEK_MODEL=deepseek-v4-flash
 export DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
+
+The CLI also loads these values from a local `.env` file.
 
 Run:
 

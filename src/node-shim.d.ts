@@ -1,5 +1,6 @@
 declare module "node:fs" {
   const fs: {
+    existsSync(path: string): boolean
     readFileSync(path: string, encoding: string): string
   }
   export default fs
@@ -18,5 +19,6 @@ declare module "node:process" {
 declare const process: {
   argv: string[]
   env: Record<string, string | undefined>
+  cwd(): string
   exit(code?: number): never
 }

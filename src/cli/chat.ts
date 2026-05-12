@@ -7,7 +7,9 @@ import { ResumeParserTool } from "../tools/resume-parser.tool.ts"
 import { JdParserTool } from "../tools/jd-parser.tool.ts"
 import { LlmTool } from "../tools/llm.tool.ts"
 import { createId, nowIso } from "../utils/id.ts"
+import { loadEnvFile } from "../utils/load-env.ts"
 
+loadEnvFile()
 const rl = createInterface({ input, output })
 const db = new InMemoryDatabase()
 const orchestrator = new CentralOrchestrator(db)

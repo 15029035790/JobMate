@@ -3,7 +3,10 @@ import { ResumeParserTool } from "../tools/resume-parser.tool.ts"
 import { JdParserTool } from "../tools/jd-parser.tool.ts"
 import { InMemoryDatabase } from "../db/in-memory-database.ts"
 import { createId, nowIso } from "../utils/id.ts"
+import { loadEnvFile } from "../utils/load-env.ts"
 import { CentralOrchestrator } from "../orchestrator/central-orchestrator.ts"
+
+loadEnvFile()
 
 function getArg(name: string): string | undefined {
   const idx = process.argv.indexOf(name)
@@ -66,7 +69,15 @@ const optimize = await orchestrator.dispatch({
 })
 
 console.log("\n=== Optimize Result ===")
+console.log(`status: ${optimize.status}`)
+if (optimize.error) console.log(JSON.stringify(optimize.error, null, 2))
 console.log(JSON.stringify(optimize.result, null, 2))
+
+if (optimize.status === "failed") {
+  console.log("\n=== Trace Events ===")
+  console.log(JSON.stringify(orchestrator.listTraceEvents(sessionId), null, 2))
+  process.exit(1)
+}
 
 if (optimize.status === "needs_user_input") {
   const confirmationId = optimize.memoryWriteRequests?.[0]?.confirmationId
@@ -86,7 +97,10 @@ if (versionId) {
     trace: { createdAt: nowIso(), source: "user" }
   })
   console.log("\n=== Save Result ===")
+  console.log(`status: ${save.status}`)
+  if (save.error) console.log(JSON.stringify(save.error, null, 2))
   console.log(JSON.stringify(save.result, null, 2))
+  if (save.status === "failed") process.exit(1)
 
   const interviewStart = await orchestrator.dispatch({
     taskId: createId("task"),
@@ -99,7 +113,10 @@ if (versionId) {
     trace: { createdAt: nowIso(), source: "user" }
   })
   console.log("\n=== Interview Start ===")
+  console.log(`status: ${interviewStart.status}`)
+  if (interviewStart.error) console.log(JSON.stringify(interviewStart.error, null, 2))
   console.log(JSON.stringify(interviewStart.result, null, 2))
+  if (interviewStart.status === "failed") process.exit(1)
 }
 
 console.log("\n=== Trace Events ===")
