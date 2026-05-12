@@ -1,58 +1,86 @@
 export interface LlmOptions {
   model?: string
   apiKey?: string
+  baseUrl?: string
   endpoint?: string
-  provider?: "openai_responses" | "openai_chat"
+  timeoutMs?: number
 }
 
-export class LlmTool {
+export interface LlmCompleteOptions {
+  system?: string
+  temperature?: number
+  responseFormat?: "json_object"
+}
+
+export interface LlmClient {
+  complete(prompt: string, options?: LlmCompleteOptions): Promise<string>
+}
+
+export class LlmTool implements LlmClient {
   private readonly model: string
   private readonly apiKey?: string
   private readonly endpoint: string
-  private readonly provider: "openai_responses" | "openai_chat"
+  private readonly timeoutMs: number
 
   constructor(options: LlmOptions = {}) {
-    const baseUrl = (process.env.OPENAI_BASE_URL ?? process.env.LLM_BASE_URL ?? "https://api.deepseek.com").replace(/\/$/, "")
-    this.model = options.model ?? process.env.OPENAI_MODEL ?? process.env.LLM_MODEL ?? "deepseek-v4-flash"
-    this.apiKey = options.apiKey ?? process.env.OPENAI_API_KEY ?? process.env.LLM_API_KEY
+    const baseUrl = (options.baseUrl
+      ?? process.env.DEEPSEEK_BASE_URL
+      ?? process.env.LLM_BASE_URL
+      ?? process.env.OPENAI_BASE_URL
+      ?? "https://api.deepseek.com").replace(/\/$/, "")
 
-    const inferredProvider = baseUrl.includes("deepseek") ? "openai_chat" : "openai_responses"
-    this.provider = options.provider ?? (process.env.LLM_PROVIDER as any) ?? inferredProvider
-    this.endpoint = options.endpoint
-      ?? (this.provider === "openai_chat" ? `${baseUrl}/chat/completions` : `${baseUrl}/v1/responses`)
+    this.model = options.model
+      ?? process.env.DEEPSEEK_MODEL
+      ?? process.env.LLM_MODEL
+      ?? process.env.OPENAI_MODEL
+      ?? "deepseek-v4-flash"
+    this.apiKey = options.apiKey
+      ?? process.env.DEEPSEEK_API_KEY
+      ?? process.env.LLM_API_KEY
+      ?? process.env.OPENAI_API_KEY
+    this.endpoint = options.endpoint ?? `${baseUrl}/chat/completions`
+    this.timeoutMs = options.timeoutMs ?? Number(process.env.LLM_TIMEOUT_MS ?? 30_000)
   }
 
-  async complete(prompt: string): Promise<string> {
+  async complete(prompt: string, options: LlmCompleteOptions = {}): Promise<string> {
     if (!this.apiKey) {
-      return `Deterministic fallback (no LLM API key): ${prompt.slice(0, 120)}`
+      throw new Error("Missing LLM API key. Set DEEPSEEK_API_KEY or LLM_API_KEY before using real LLM calls.")
     }
 
-    const payload = this.provider === "openai_chat"
-      ? { model: this.model, messages: [{ role: "user", content: prompt }], temperature: 0.3 }
-      : { model: this.model, input: prompt, temperature: 0.3 }
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), this.timeoutMs)
+    const messages = [
+      ...(options.system ? [{ role: "system", content: options.system }] : []),
+      { role: "user", content: prompt }
+    ]
 
-    const res = await fetch(this.endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${this.apiKey}`
-      },
-      body: JSON.stringify(payload)
-    })
+    try {
+      const res = await fetch(this.endpoint, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages,
+          temperature: options.temperature ?? 0.3,
+          ...(options.responseFormat ? { response_format: { type: options.responseFormat } } : {})
+        })
+      })
 
-    if (!res.ok) {
-      const err = await res.text()
-      throw new Error(`LLM request failed: ${res.status} ${err}`)
+      if (!res.ok) {
+        const err = await res.text()
+        throw new Error(`LLM request failed: ${res.status} ${err}`)
+      }
+
+      const data = await res.json() as any
+      const text = data.choices?.[0]?.message?.content
+      if (typeof text !== "string" || !text.trim()) throw new Error("LLM request returned an empty response.")
+      return text
+    } finally {
+      clearTimeout(timeout)
     }
-
-    const data = await res.json() as any
-    if (this.provider === "openai_chat") {
-      return data.choices?.[0]?.message?.content ?? "(empty model response)"
-    }
-
-    const text = data.output_text
-      ?? data.output?.flatMap((o: any) => o.content ?? []).map((c: any) => c.text).filter(Boolean).join("\n")
-      ?? ""
-    return text || "(empty model response)"
   }
 }

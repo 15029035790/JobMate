@@ -12,6 +12,11 @@ import { IntentPlanner } from "../planner/intent-planner.ts"
 import { MemoryCommitController } from "../reflection/memory-commit-controller.ts"
 import { TaskRouter } from "../harness/task-router.ts"
 import { InMemoryObservabilityPort } from "../p2/observability.interface.ts"
+import { type LlmClient, LlmTool } from "../tools/llm.tool.ts"
+
+export interface CentralOrchestratorOptions {
+  llm?: LlmClient
+}
 
 export class CentralOrchestrator {
   private readonly router = new TaskRouter()
@@ -22,12 +27,14 @@ export class CentralOrchestrator {
   private readonly memoryCommitController = new MemoryCommitController(this.longTermMemoryStore)
   private readonly observability = new InMemoryObservabilityPort()
   private readonly db: InMemoryDatabase
+  private readonly llm: LlmClient
 
-  constructor(db: InMemoryDatabase) {
+  constructor(db: InMemoryDatabase, options: CentralOrchestratorOptions = {}) {
     this.db = db
+    this.llm = options.llm ?? new LlmTool()
     this.runtime.register(new ResumeJdMatchingAgent(db))
-    this.runtime.register(new ResumeVersionOptimizationAgent(db))
-    this.runtime.register(new MockInterviewAgent(db))
+    this.runtime.register(new ResumeVersionOptimizationAgent(db, this.llm))
+    this.runtime.register(new MockInterviewAgent(db, this.llm))
     this.runtime.register(new InterviewReviewNegotiationAgent(db))
     this.runtime.register(new WeaknessDiagnosisAgent(db))
     this.runtime.register(new LearningPlannerAgent(db))

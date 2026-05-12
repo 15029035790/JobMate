@@ -7,6 +7,7 @@ import { InterviewReviewNegotiationAgent } from "../src/agents/interview-review-
 import { MemoryCommitController } from "../src/reflection/memory-commit-controller.ts"
 import { LongTermMemoryStore } from "../src/memory/long-term-memory.store.ts"
 import { CentralOrchestrator } from "../src/orchestrator/central-orchestrator.ts"
+import { FakeLlm } from "./fake-llm.ts"
 
 test("router + runtime can execute review draft flow", async () => {
   const db = new InMemoryDatabase()
@@ -30,7 +31,7 @@ test("orchestrator enforces confirmation before long-term commit", async () => {
   db.jobDescriptions.set("jd1", { id: "jd1", userId: "u1", title: "Backend", rawText: "", parsedContent: { responsibilities: [], requiredSkills: [], preferredSkills: [], keywords: ["node"] }, tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
   db.baseResumes.set("base1", { id: "base1", userId: "u1", title: "base", rawText: "", parsedContent: { basics: {}, skills: [{ category: "general", items: ["node"] }], experiences: [], projects: [] }, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
 
-  const orchestrator = new CentralOrchestrator(db)
+  const orchestrator = new CentralOrchestrator(db, { llm: new FakeLlm() })
   const first = await orchestrator.dispatch({ taskId: "t1", userId: "u1", sessionId: "s1", taskType: "optimize_resume_version", payload: { mode: "optimize", sourceResumeId: "base1", sourceType: "base_resume", jdId: "jd1" }, context: {}, memoryRefs: {}, trace: { createdAt: new Date().toISOString(), source: "user" } })
   assert.equal(first.status, "needs_user_input")
 

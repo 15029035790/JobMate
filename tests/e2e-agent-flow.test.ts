@@ -2,6 +2,7 @@ import test from "node:test"
 import assert from "node:assert/strict"
 import { InMemoryDatabase } from "../src/db/in-memory-database.ts"
 import { CentralOrchestrator } from "../src/orchestrator/central-orchestrator.ts"
+import { FakeLlm } from "./fake-llm.ts"
 
 function seed(db: InMemoryDatabase) {
   db.jobDescriptions.set("jd1", { id: "jd1", userId: "u1", title: "Backend", rawText: "", parsedContent: { responsibilities: [], requiredSkills: [], preferredSkills: [], keywords: ["node", "metrics"] }, tags: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })
@@ -10,7 +11,7 @@ function seed(db: InMemoryDatabase) {
 
 test("e2e flow from optimize -> interview -> review -> weakness -> learning", async () => {
   const db = new InMemoryDatabase(); seed(db)
-  const o = new CentralOrchestrator(db)
+  const o = new CentralOrchestrator(db, { llm: new FakeLlm() })
 
   const optimize = await o.dispatch({ taskId: "t1", userId: "u1", sessionId: "s1", taskType: "optimize_resume_version", payload: { mode: "optimize", sourceResumeId: "base1", sourceType: "base_resume", jdId: "jd1" }, context: {}, memoryRefs: {}, trace: { createdAt: new Date().toISOString(), source: "user" } })
   assert.equal(optimize.status, "needs_user_input")

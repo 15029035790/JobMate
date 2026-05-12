@@ -11,13 +11,19 @@ It implements:
 - Resume versioning with copy-based optimization.
 - Human-in-the-loop interview review and weakness confirmation gates.
 
-This repository intentionally starts as a dependency-free TypeScript MVP. Node 24 can run the `.ts` files directly through built-in type stripping.
+This repository is a lightweight TypeScript MVP. Use Node 22+ and install dev dependencies before running checks.
+
+## Setup
+
+```bash
+npm install
+```
 
 ## Run Tests
 
 
 ```bash
-node --test tests/*.test.ts
+npm test
 ```
 
 ## Run Demo
@@ -44,6 +50,16 @@ npm run build
 
 ## Real Resume + JD Test
 
+This flow now uses real DeepSeek chat-completions calls for resume optimization and mock interview question generation. Configure the API key before running it:
+
+```bash
+export DEEPSEEK_API_KEY=your_key
+export DEEPSEEK_MODEL=deepseek-v4-flash
+export DEEPSEEK_BASE_URL=https://api.deepseek.com
+```
+
+`deepseek-v4-flash` is the default for lower latency and cost. Switch `DEEPSEEK_MODEL` to `deepseek-v4-pro` when you want stronger reasoning. `LLM_API_KEY`, `LLM_MODEL`, and `LLM_BASE_URL` are also supported aliases.
+
 1) Prepare two text files:
 - `resume.txt`
 - `jd.txt`
@@ -61,15 +77,17 @@ This will run an end-to-end kernel flow:
 - start mock interview
 - print orchestrator trace events
 
+The resume optimizer only aligns wording around JD keywords that already have evidence in the source resume. Unsupported JD requirements are returned as risk warnings instead of being added as claimed skills.
+
 
 ## Terminal Chat
 
-Set env var first (optional but recommended for real model, and never commit keys):
+Set env vars first, and never commit keys:
 
 ```bash
-export LLM_API_KEY=your_key
-export LLM_MODEL=deepseek-v4-flash
-export LLM_BASE_URL=https://api.deepseek.com
+export DEEPSEEK_API_KEY=your_key
+export DEEPSEEK_MODEL=deepseek-v4-flash
+export DEEPSEEK_BASE_URL=https://api.deepseek.com
 ```
 
 Run:

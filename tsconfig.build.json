@@ -10,8 +10,7 @@
     "outDir": "dist",
     "rootDir": "src",
     "allowImportingTsExtensions": true,
-    "rewriteRelativeImportExtensions": true,
-    "ignoreDeprecations": "6.0"
+    "rewriteRelativeImportExtensions": true
   },
   "include": [
     "src/**/*.ts",
