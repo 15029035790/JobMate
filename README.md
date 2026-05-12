@@ -32,6 +32,28 @@ npm test
 npm run demo
 ```
 
+## Run GUI
+
+The GUI is a Next.js workbench that reads local `resume.txt`, `jd.txt`, and `.env`.
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+Useful scripts:
+
+```bash
+npm run web:build
+npm run typecheck
+npm test
+```
+
 
 ## Docs
 

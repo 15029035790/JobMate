@@ -39,7 +39,7 @@ export class LlmTool implements LlmClient {
       ?? process.env.LLM_API_KEY
       ?? process.env.OPENAI_API_KEY
     this.endpoint = options.endpoint ?? `${baseUrl}/chat/completions`
-    this.timeoutMs = options.timeoutMs ?? Number(process.env.LLM_TIMEOUT_MS ?? 30_000)
+    this.timeoutMs = options.timeoutMs ?? Number(process.env.LLM_TIMEOUT_MS ?? 90_000)
   }
 
   async complete(prompt: string, options: LlmCompleteOptions = {}): Promise<string> {
@@ -79,6 +79,11 @@ export class LlmTool implements LlmClient {
       const text = data.choices?.[0]?.message?.content
       if (typeof text !== "string" || !text.trim()) throw new Error("LLM request returned an empty response.")
       return text
+    } catch (err) {
+      if ((err as Error).name === "AbortError") {
+        throw new Error(`LLM request timed out after ${this.timeoutMs}ms.`)
+      }
+      throw err
     } finally {
       clearTimeout(timeout)
     }
